@@ -7,7 +7,7 @@ mdsubsec = re.compile("^-+\n$")
 
 input = sys.stdin.readlines()
 lineno = 0
-lenin = len(input))
+lenin = len(input)
 for lineno in range(0,len(input)):
     lineno += 1
     if (lineno == lenin):
