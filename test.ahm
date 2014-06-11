@@ -1,0 +1,113 @@
+Another Horrible Markup Language
+Inspired by (and horribly bastardising): Markdown (vanilla, discount extras and Github Flavoured), ReST, LaTeX
+
+Principle:
+  - The power of LaTeX
+  - The ease of Markdown
+  - None of the horror show that is TeX converters
+  - Stated purpose of generating web pages, not print articles or plain text.
+
+The irony of writing this up on gist is not lost on me.
+I've generally only specified the opening tag of a LaTeX style `\begin{}` block... a closing tag is implied but not given. 
+
+Headers
+=======
+
+Equals or hyphen strings like Markdown are mapped to `\section` `\subsection`.
+LaTeX is generally prefered.
+  - `\part` and `\chapter` may be ignored, may be used for multipage docs, not decided.
+  - `\section` `\subsection` `\subsubsection` `\paragraph` `\subparagraph` are supported directly.
+  - Example: `\section{"This is a section in the page, yo!"}`
+  
+Line breaks
+===========
+
+New lines are converted as is.  Thus line breaks render as you expect them to.
+This is not how MD or LaTeX do things.  Continuation lines can be done with a trailing `\`.
+If the final printable character is a `\` then it, along with surounding whitespace (including the `\n`) become a single space.
+Thus:
+```
+  foo   \
+  bar
+```
+becomes
+```
+  foo bar
+```
+
+To force a line break, use `\newline` as in LaTeX or `\n` for short.  The short form `\\` is not supported as that's treated as an escaped `\`.
+
+Blockquotes
+===========
+
+Both `>` indenting, per Markdown, and `\begin{block}` LaTeX forms are supported for normal indented blocks.
+GFM fenced monospace blocks are supported using the triple backtick form, as is `\begin{code}` form.
+To activate syntax highlighting, GFM operates as usual (triple backtick followed by syntax spec) and LaTeX is written as `\begin[python]{code}`
+There is also a `\begin{verbatim}` block to act as a "don't parse me" section.
+
+Style
+=====
+
+Slight deviation from Markdown, but intended to be configurable.  By default the following mappings work:
+  - *bold text*
+  - /italic text/
+  - _underlined text_
+  - +strike through+ --also strike through, per GFM-- ...
+    Yeah, there's a lot of debate on the clearest way of doing that.  These two seem the cleanest :p
+  - GFM's underscore in words logic holds here.  `Foo_bar_eggs` doesn't have bar formatted, it's rendered as is.
+  - Superscript available as `x^2`, `x^(2+2)` per Discount markdown extras, and `x\sup{"2"}` for clarity and compatibility.
+  - Subscript only available via `x\sub{"n"}` form, to avoid conflicted interpretation of underscore.
+  
+Lists
+=====
+
+List characters supported are `-`, `+` and `*`.  Any can be used.
+  - This is a list.
+    This is a continuation of the first item.
+  - This is a second point.
+    - This is a sublist, just add indents.
+  - Sub lists ended by de-indent.
+  - Be consistent in your whitespace.  There may be 1 to 3 spaces after the list character.
+    -# Specify type of list with a second character.
+    -  Starting with `-#` says that this is an ordered list.  You don't provide the numbers, it works them out.
+    -  Other options include `-*` and `--` if you want to specify a list as bulleted or dashed specifically;
+       Use `-i` for Roman numerals; use `-a` if you want to have numbers.
+  - Further styling options can also be provided:
+    -#) This list would be numbered, with a `)` after the number like `1)`.  Use `-#(` to get `(1)`.
+    -   Use `-#/` for `1/` ... `-#." for `1.`
+    -   This also works with `-i` and `-a`.
+  - The main reason for not supporting `1.` like Markdown is to avoid confusion that the numbers mean anything
+    and to make converting between list types a single character change.
+    
+Links
+=====
+
+  - Per GFM, bare urls are auto linked.
+  - Normal Markdown style links are supported: `[Google](https://google.com)`
+  - Reference Markdown links are supported with a slight adjustment: `[Google]([Google main page])`
+    The extra parentheses are required to avoid possible ambiguity.
+  - Slightly more pleasant format is also supported: `[[Google|https://google.com]]`
+  - A LaTeX style is provided as `\url["Google"]{"https://google.com"}` and `\href["Google"]{"https://google.com"}`
+  - If one of these links is provided with the text consisting of one or more hashes it will be converted to a footnote.
+    Example: `[#](https://some.random.com/cited/source - A short description of the source)`
+    The link will be specified in the format `[1]` in the final result.
+    An optional description can be provided by following the url with ` - ` and the description.  The spaces are required.
+    
+Images & tables
+===============
+
+  - These will be fairly close to GFM and LaTeX provides.  Still thinking on it.
+  
+Special
+=======
+
+  - Lines beginning with `#!` will be ignored completely.  This is to facilitate a shebang.
+  - Lines beginning with `## ` (hash hash space) are control lines.
+    - `## set fewer_lines=on;` to use Markdown/LaTeX style line break logic.
+    - `## set markdown_emphasis=on;` to follow Markdown's bold/italic rules.  This is a compatibility option primarily.
+    - `## set latex_double_backslash=on;` makes `\\` a line break rather than an escaped `\`.  For compatibility reasons.
+    - `## include path/to/file.ahm` include and process the file as if it were actually in this file.
+  - Lines beginning with `#` that aren't `#!` or `##` will be treated as comments.
+  - These `#` rules don't apply inside block quotes.
+  - `\#` is replaced with `#`, should you need one at the beginning of the line.  `\hash` also works.
+  - As noted above, `\\` is rendered as a single `\`.  A `\` followed by a space is also left as it is.
