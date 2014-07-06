@@ -1,4 +1,5 @@
 Another Horrible Markup Language
+================================
 Inspired by (and horribly bastardising): Markdown (vanilla, discount extras and Github Flavoured), ReST, LaTeX
 
 Principle:
@@ -18,7 +19,16 @@ LaTeX is generally prefered.
   - `\part` and `\chapter` may be ignored, may be used for multipage docs, not decided.
   - `\section` `\subsection` `\subsubsection` `\paragraph` `\subparagraph` are supported directly.
   - Example: `\section{"This is a section in the page, yo!"}`
-  
+
+\section{"Section test"}
+\subsection{"subsec"}
+\subsubsection{"subsub"}
+\paragraph{"para"}
+\subparagraph{"subpara"}
+\paragraph{"para2"}
+\subparagraph{"subpara2"}
+
+
 Line breaks
 ===========
 
@@ -30,12 +40,19 @@ Thus:
   foo   \
   bar
 ```
-becomes
+becomes:
 ```
   foo bar
 ```
+like so: foo \
+bar
 
 To force a line break, use `\newline` as in LaTeX or `\n` for short.  The short form `\\` is not supported as that's treated as an escaped `\`.
+
+Example:
+Line 1 \newline Line 2 \n Line 3
+
+Escaped backslash: \\
 
 Blockquotes
 ===========
@@ -45,19 +62,51 @@ GFM fenced monospace blocks are supported using the triple backtick form, as is 
 To activate syntax highlighting, GFM operates as usual (triple backtick followed by syntax spec) and LaTeX is written as `\begin[python]{code}`
 There is also a `\begin{verbatim}` block to act as a "don't parse me" section.
 
+> Indent test using `>`
+
+\begin{block}
+Indent test using \\begin{block}
+\end{block}
+
+\begin[python]{code}
+#Indent test using code
+\end{code}
+
+\begin{code}
+#Indent test using code
+\end{code}Text after
+
+```python
+#Indent using triptick
+```
+
+Verbatim test: Foo \begin{verbatim} \n
+```
+test
+```
+\end{verbatim} more text.  End test.
+
 Style
 =====
 
 Slight deviation from Markdown, but intended to be configurable.  By default the following mappings work:
-  - *bold text*
-  - /italic text/
-  - _underlined text_
-  - +strike through+ --also strike through, per GFM-- ...
+  - **bold text**
+  - //italic text//
+  - __underlined text__
+  - ++strike through++ --also strike through, per GFM-- ...
     Yeah, there's a lot of debate on the clearest way of doing that.  These two seem the cleanest :p
-  - GFM's underscore in words logic holds here.  `Foo_bar_eggs` doesn't have bar formatted, it's rendered as is.
+
+Note the doubled characters.  Triple characters display the character as well:
+  - ***bold text***
+  - ///italic text///
+  - ___underlined text___
+  - +++strike through+++ ---also strike through, per GFM---
+
+Additionally:
+  - GFM's underscore in words logic holds here.  `Foo__bar__eggs` doesn't have bar formatted, it's rendered as is.  Foo__bar__eggs.
   - Superscript available as `x^2`, `x^(2+2)` per Discount markdown extras, and `x\sup{"2"}` for clarity and compatibility.
   - Subscript only available via `x\sub{"n"}` form, to avoid conflicted interpretation of underscore.
-  
+
 Lists
 =====
 
@@ -66,6 +115,7 @@ List characters supported are `-`, `+` and `*`.  Any can be used.
     This is a continuation of the first item.
   - This is a second point.
     - This is a sublist, just add indents.
+    This is a continuation of the second item.
   - Sub lists ended by de-indent.
   - Be consistent in your whitespace.  There may be 1 to 3 spaces after the list character.
     -# Specify type of list with a second character.
@@ -74,11 +124,27 @@ List characters supported are `-`, `+` and `*`.  Any can be used.
        Use `-i` for Roman numerals; use `-a` if you want to have numbers.
   - Further styling options can also be provided:
     -#) This list would be numbered, with a `)` after the number like `1)`.  Use `-#(` to get `(1)`.
-    -   Use `-#/` for `1/` ... `-#." for `1.`
+    -   Use `-#/` for `1/` ... `-#.` for `1.`
     -   This also works with `-i` and `-a`.
   - The main reason for not supporting `1.` like Markdown is to avoid confusion that the numbers mean anything
     and to make converting between list types a single character change.
-    
+
+  -# Numbered:
+    -#( test
+    -# test
+  - Star:
+    -*/ test
+    -* test
+  - Dash:
+    -- test
+    -- test
+  - Roman:
+    -i. test
+    -i test
+  - Alpha:
+    -a) test
+    -a test
+
 Links
 =====
 
