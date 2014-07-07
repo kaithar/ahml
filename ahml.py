@@ -1,3 +1,5 @@
+#! /usr/bin/python
+# -*- coding: utf8 -*-
 from __future__ import print_function
 import sys
 import re
