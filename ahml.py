@@ -360,7 +360,8 @@ sugar = {')': '-par', '(': '-bothpar', '/': '-slash',  '.': '-period', '': '-bar
 
 print('''<html><head><style>
 body {
-    line-height: 1.5em;
+    font: 16px/24px sans-serif;
+    margin: 1em;
 }
 
 ul {
@@ -407,41 +408,39 @@ ul.list-latin-slash   > li:before { content: counter(listcounter, lower-latin) '
 ul.list-latin-period  > li:before { content: counter(listcounter, lower-latin) '. ';        }
 ul.list-latin-bare    > li:before { content: counter(listcounter, lower-latin) '  ';        }
 
-ul.list-dash-par     > li:before { content: '-) ';          }
-ul.list-dash-bothpar > li:before { content: '(-) ';         }
-ul.list-dash-slash   > li:before { content: '-/ ';          }
-ul.list-dash-period  > li:before { content: '-. ';          }
-ul.list-dash-bare    > li:before { content: '-  ';          }
+ul.list-dash-par     > li:before { content: '–) ';          }
+ul.list-dash-bothpar > li:before { content: '(–) ';         }
+ul.list-dash-slash   > li:before { content: '–/ ';          }
+ul.list-dash-period  > li:before { content: '–. ';          }
+ul.list-dash-bare    > li:before { content: '–  ';          }
 
-ul.list-basic-par     > li:before { content: 'o) ';         }
-ul.list-basic-bothpar > li:before { content: '(o) ';        }
-ul.list-basic-slash   > li:before { content: 'o/ ';         }
-ul.list-basic-period  > li:before { content: 'o. ';         }
-ul.list-basic-bare    > li:before { content: 'o  ';         }
+ul.list-basic-par     > li:before { content: '•) ';         }
+ul.list-basic-bothpar > li:before { content: '(•) ';        }
+ul.list-basic-slash   > li:before { content: '•/ ';         }
+ul.list-basic-period  > li:before { content: '•. ';         }
+ul.list-basic-bare    > li:before { content: '•  ';         }
 
 div.structuralheader
 {
-    font-weight: bold;  margin: 10px; margin-bottom: 10px;
+    font-weight: bold;
+    margin-bottom: 1rem;
 }
 
-div.structuralheader span
-{
-    border-bottom: 3px solid gray; padding: 0px 10px 5px 10px;
-}
+div.structuralheader span {  }
 
-div.sectionheader {  }
-div.sectionheader span {  }
+div.sectionheader { font-size: 1.8em; }
+div.sectionheader span { padding-bottom: 0.25rem; border-bottom: 1px dashed gray; display:block; }
 
-div.subsectionheader {  }
-div.subsectionheader span {  }
+div.subsectionheader { font-size: 1.6em; }
+div.subsectionheader span { padding-bottom: 0.25rem; border-bottom: 1px dashed gray; }
 
-div.subsubsectionheader {  }
-div.subsubsectionheader span {  }
+div.subsubsectionheader { font-size:1.4em; margin-bottom: 0.5rem; }
+div.subsubsectionheader span { margin-bottom: 0.5rem; }
 
-div.paragraphheader {  }
+div.paragraphheader { font-size:1.2em; margin-bottom: 0.25rem; }
 div.paragraphheader span {  }
 
-div.subparagraphheader {  }
+div.subparagraphheader { font-size:14px; margin-bottom: 0; }
 div.subparagraphheader span {  }
 
 div.structuralbody {  }
@@ -456,16 +455,17 @@ span.mono {
     border-radius: 10px;
 }
 
+div.mono, div.inblock {
+    margin: 0.5em 1.5em;
+    padding: 0.25em 0em 0.25em 1em;
+}
+
 div.mono {
-    margin: 10px 30px 10px 30px;
     border-left: 1px solid rgba(143, 49, 196, 0.35);
-    padding: 5px 15px 5px 15px;
 }
 
 div.inblock {
-    margin: 10px 30px 10px 30px;
     border-left: 1px dotted rgba(143, 49, 196, 0.35);
-    padding: 5px 15px 5px 15px;
 }
 
 span.embolden { font-weight: bold; }
