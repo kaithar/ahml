@@ -4,6 +4,10 @@ from __future__ import print_function
 import sys
 import re
 
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
+
 mdsection = re.compile("^=+$")
 mdsubsec = re.compile("^-+$")
 
@@ -78,8 +82,12 @@ while True:
                 body += line
                 break
             elif input[search] == "```":
-                body += '<div class="mono code" language="%s">%s</div>'%(
-                              line[3:],
+                if (len(line) > 3):
+                    lexer = get_lexer_by_name(line[3:], stripall=True)
+                    formatter = HtmlFormatter(linenos='table', cssclass="code")
+                    body += '<div class="mono">'+highlight('\n'.join(input[lineno+1:search]), lexer, formatter)+'</div>'
+                else:
+                    body += '<div class="mono code">%s</div>'%(
                               '<br/>\n'.join(input[lineno+1:search]))
                 lineno = search
                 break
@@ -294,15 +302,21 @@ while True:
                                     w = input[search].find('\\end{code}')
                                     if (w >= 0) and ((search > lineno) or (w > c)):
                                         # hit
-                                        body += '<div class="mono code" language="%s">'%(parts[2] or "")
                                         codeparts = []
                                         if (c + len(parts[0]) < lenline):
                                             codeparts.append(line[c + len(parts[0]):])
                                         if (search > lineno + 1):
-                                            codeparts.append('<br/>\n'.join(input[lineno+1:search]))
+                                            codeparts.append('\n'.join(input[lineno+1:search]))
                                         if (search > lineno) and (w != 0):
                                             codeparts.append(input[search][:w])
-                                        body += '<br/>\n'.join(codeparts) + '</div>\n'
+                                        codechunk = '\n'.join(codeparts)
+                                        if parts[2]:
+                                            lexer = get_lexer_by_name(parts[2], stripall=True)
+                                            formatter = HtmlFormatter(linenos='table', cssclass="code")
+                                            body += '<div class="mono">'+highlight(codechunk, lexer, formatter)+'</div>'
+                                        else:
+                                            body += '<div class="mono code" language="%s">'%(parts[2] or "")
+                                            body += codechunk.replace('\n', '<br/>\n')+'<br/>\n</div>\n'
                                         lineno = search
                                         chunk = input[search][w + len('\\end{code}'):]
                                         if chunk:
@@ -361,6 +375,7 @@ styles = {'#':'list-decimal', '*': 'list-star', 'i': 'lower-roman', 'a': 'lower-
 sugar = {')': '-par', '(': '-bothpar', '/': '-slash',  '.': '-period', '': '-bare' }
 
 print('''<html><head><style>
+'''+HtmlFormatter().get_style_defs('.code')+'''
 body {
     font: 16px/24px sans-serif;
     margin: 1em;
