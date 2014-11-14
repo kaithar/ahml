@@ -60,7 +60,7 @@ while True:
                 body += "</div></li></ul>\n"
                 listdepth.pop(0)
         elif (in_blocks):
-            body = body[:-6] + '</div>'
+            body = body[:-6] + '</div>' # The -6 is to trim the last '<br/>\n'
             in_blocks = False
         else:
             body += "<br/>\n"
@@ -100,7 +100,7 @@ while True:
             in_blocks = True
             body += '<div class="inblock">'
     elif (in_blocks):
-        body = body[:-6] + '</div>'
+        body = body[:-6] + '</div>' # the -6 is to trim the last '<br/>\n'
         in_blocks = False
     if ((lineno+1 < len(input)) and (len(line) == len(input[lineno+1]))):
         if (mdsection.match(input[lineno+1])):
@@ -245,19 +245,24 @@ while True:
                         body += '-'
                         c += 1
                     body += '</span>'
-                    c += 2
+                    c += 1
                     in_strike = False
+                    continue
                 else:
                     if (line[c+2:].find('-')):
                         body += '<span class="stricken">'
                         if (len(line) > c+2) and line[c+2] == '-':
                             body += '-'
-                            c += 3
-                        else:
                             c += 2
+                        else:
+                            c += 1
                         in_strike = True
-                if (c == lenline):
-                    break
+                        continue
+            if (line[c] == '[') and (line[c+1] == '[') and (line[c+2:].find(']]')):
+                link = re.match('\[\[([^|]+)\|([^\]]+)\]\]', line[c:])
+                c += link.end() - 1
+                body += link.expand('<a href="\\2">\\1</a>')
+                continue
             if (line[c] == '\\'):
                 if (lenline > c+1) and line[c+1] == '\\':
                     body += "\\"
@@ -374,7 +379,7 @@ while True:
 styles = {'#':'list-decimal', '*': 'list-star', 'i': 'lower-roman', 'a': 'lower-latin', '-': 'list-dash', '': 'list-basic'}
 sugar = {')': '-par', '(': '-bothpar', '/': '-slash',  '.': '-period', '': '-bare' }
 
-print('''<html><head><style>
+print('''<html><head><meta charset="UTF-8"/><style>
 '''+HtmlFormatter().get_style_defs('.code')+'''
 body {
     font: 16px/24px sans-serif;
