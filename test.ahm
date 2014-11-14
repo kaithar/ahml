@@ -107,6 +107,8 @@ Additionally:
   - Superscript available as `x^2`, `x^(2+2)` per Discount markdown extras, and `x\sup{"2"}` for clarity and compatibility.
   - Subscript only available via `x\sub{"n"}` form, to avoid conflicted interpretation of underscore.
 
+--test--//hmm//
+
 Lists
 =====
 
@@ -152,7 +154,7 @@ Links
   - Normal Markdown style links are supported: `[Google](https://google.com)`
   - Reference Markdown links are supported with a slight adjustment: `[Google]([Google main page])`
     The extra parentheses are required to avoid possible ambiguity.
-  - Slightly more pleasant format is also supported: `[[Google|https://google.com]]`
+  - Slightly more pleasant format is also supported: `[[Google|https://google.com]]` - [[Google|https://google.com]]
   - A LaTeX style is provided as `\url["Google"]{"https://google.com"}` and `\href["Google"]{"https://google.com"}`
   - If one of these links is provided with the text consisting of one or more hashes it will be converted to a footnote.
     Example: `[#](https://some.random.com/cited/source - A short description of the source)`
