@@ -15,10 +15,10 @@ tagfind = re.compile('^(\\\\([a-zA-Z_-]+)(?:\\[([^]]+)])?\\{("([^"]+)"|[^}]+)})'
 
 sectiontags = {
     'section':       '<div class="structuralheader sectionheader"><span>{1}</span></div><div class="structuralbody sectionbody">',
-    'subsection':    '<div class="structuralheader subsectionheader"><span>{1}</span></div><div class="structuralbody subsectionheader">',
-    'subsubsection': '<div class="structuralheader subsubsectionheader"><span>{1}</span></div><div class="structuralbody subsubsectionheader">',
-    'paragraph':     '<div class="structuralheader paragraphheader"><span>{1}</span></div><div class="structuralbody paragraphheader">',
-    'subparagraph':  '<div class="structuralheader subparagraphheader"><span>{1}</span></div><div class="structuralbody subparagraphheader">'
+    'subsection':    '<div class="structuralheader subsectionheader"><span>{1}</span></div><div class="structuralbody subsectionbody">',
+    'subsubsection': '<div class="structuralheader subsubsectionheader"><span>{1}</span></div><div class="structuralbody subsubsectionbody">',
+    'paragraph':     '<div class="structuralheader paragraphheader"><span>{1}</span></div><div class="structuralbody paragraphbody">',
+    'subparagraph':  '<div class="structuralheader subparagraphheader"><span>{1}</span></div><div class="structuralbody subparagraphbody">'
 }
 in_section = False
 
@@ -48,6 +48,7 @@ body = ""
 listdepth = []
 listcounter = []
 extracss = []
+default_css = True
 
 lineno = -1
 while True:
@@ -90,6 +91,10 @@ while True:
             if (line.startswith('## css ')):
                 fn = line[7:]
                 extracss.append(fn)
+                continue
+            # ## suppress default_css
+            if (line.startswith('## suppress default_css')):
+                default_css = False
                 continue
             pass
         else:
@@ -399,11 +404,20 @@ while True:
         else:
             body += "<br/>\n"
 
+# Just in case we're actually in a section still.
+if in_section:
+    body += "</div>"
+
 styles = {'#':'list-decimal', '*': 'list-star', 'i': 'lower-roman', 'a': 'lower-latin', '-': 'list-dash', '': 'list-basic'}
 sugar = {')': '-par', '(': '-bothpar', '/': '-slash',  '.': '-period', '': '-bare' }
 
 print('''<html><head><meta charset="UTF-8"/><style>
 '''+HtmlFormatter().get_style_defs('.code')+'''
+</style>''')
+
+if (default_css):
+    print ('''
+<style>
 body {
     font: 16px/24px sans-serif;
     margin: 1em;
@@ -526,6 +540,6 @@ for x in extracss:
 print('''</head><body>
       ''')
 print(body)
-
+print('</body></html>')
 
 
