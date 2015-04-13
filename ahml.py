@@ -47,13 +47,16 @@ for lineno in range(0,len(input)):
 body = ""
 listdepth = []
 listcounter = []
+extracss = []
 
 lineno = -1
 while True:
     lineno += 1
+    #body += str(lineno)
     if (lineno == lenin):
         break
     line = input[lineno]
+    #body += line
     if (len(line) == 0):
         if (len(listdepth) > 0):
             while len(listdepth) > 0:
@@ -70,6 +73,24 @@ while True:
             continue
         elif(line[1] == '#'):
             # This will be the control instructions
+            if (line.startswith('## include ')):
+                fn = line[11:]
+                ninpm = open(fn).readlines()
+                lenin += len(ninpm)
+
+                for lineno2 in range(0,len(ninpm)):
+                    input.insert(lineno + 1 + lineno2, ninpm[lineno2].replace("\n", ""))
+                continue
+            # ## inject
+            if (line.startswith('## inject ')):
+                fn = line[10:]
+                body += open(fn).read()
+                continue
+            # ## css
+            if (line.startswith('## css ')):
+                fn = line[7:]
+                extracss.append(fn)
+                continue
             pass
         else:
             # This will be comments
@@ -326,6 +347,7 @@ while True:
                                         chunk = input[search][w + len('\\end{code}'):]
                                         if chunk:
                                             input.insert(search+1, chunk)
+                                            lenin += 1
                                         skip_newline = True
                                         break
                                     else:
@@ -353,6 +375,7 @@ while True:
                                         chunk = input[search][w + len('\\end{verbatim}'):]
                                         if chunk:
                                             input.insert(search+1, chunk)
+                                            lenin += 1
                                         break
                                     else:
                                         search += 1
@@ -495,7 +518,12 @@ span.italizie { font-style: italic; }
 span.underbar { text-decoration: underline; }
 span.stricken { text-decoration: line-through; }
 
-</style></head><body>
+</style>''')
+
+for x in extracss:
+    print('<link rel="stylesheet" href="'+x+'" type="text/css"/>')
+
+print('''</head><body>
       ''')
 print(body)
 
