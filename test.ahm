@@ -1,3 +1,5 @@
+## css main.css
+## inject header.ahm
 Another Horrible Markup Language
 ================================
 Inspired by (and horribly bastardising): Markdown (vanilla, discount extras and Github Flavoured), ReST, LaTeX
@@ -175,7 +177,14 @@ Special
     - `## set markdown_emphasis=on;` to follow Markdown's bold/italic rules.  This is a compatibility option primarily.
     - `## set latex_double_backslash=on;` makes `\\` a line break rather than an escaped `\`.  For compatibility reasons.
     - `## include path/to/file.ahm` include and process the file as if it were actually in this file.
+    - `## inject path/to/file.ahm` output the file without any processing.
   - Lines beginning with `#` that aren't `#!` or `##` will be treated as comments.
   - These `#` rules don't apply inside block quotes.
   - `\#` is replaced with `#`, should you need one at the beginning of the line.  `\hash` also works.
   - As noted above, `\\` is rendered as a single `\`.  A `\` followed by a space is also left as it is.
+
+Test include:
+## include include_test.ahm
+
+Test inject:
+## inject include_test.ahm
