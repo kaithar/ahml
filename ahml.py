@@ -50,6 +50,14 @@ listcounter = []
 extracss = []
 default_css = True
 
+# Modes:
+FOOTNOTES = 0
+MARGINALNOTES = 1
+POPUPNOTES = 2
+note_mode = FOOTNOTES
+note_list = []
+note_counter = 0
+
 lineno = -1
 while True:
     lineno += 1
@@ -95,6 +103,26 @@ while True:
             # ## suppress default_css
             if (line.startswith('## suppress default_css')):
                 default_css = False
+                continue
+            # ## notes (foot|margin|side|popup)
+            if (line.startswith('## notes ')):
+                fn = line[9:]
+                if (fn.startswith('foot')):
+                    note_mode = FOOTNOTES
+                elif (fn.startswith('margin')):
+                    note_mode = MARGINALNOTES
+                elif (fn.startswith('side')):
+                    note_mode = MARGINALNOTES
+                elif (fn.startswith('popup')):
+                    note_mode = POPUPNOTES
+                continue
+            # ## footnotes
+            if (line.startswith('## footnotes')):
+                if (note_list):
+                    body += '<ul>'
+                    for note in note_list:
+                        body += '<li><a href="footnotelink-{0}" id="footnote-{0}">Note {0}</a> - {1}</li>'.format(note[0], note[1])
+                    body += '</ul>'
                 continue
             pass
         else:
@@ -284,11 +312,40 @@ while True:
                             c += 1
                         in_strike = True
                         continue
-            if (line[c] == '[') and (line[c+1] == '[') and (line[c+2:].find(']]')):
+            if (line[c] == '['):
+                # Matching the following formats here:
+                # [[Foo|Bar]]
+                # [Foo](Bar)
+                # [Foo]([Bar])
+                # [[#|Bar]]
+                # [#](Bar)
                 link = re.match('\[\[([^|]+)\|([^\]]+)\]\]', line[c:])
-                c += link.end() - 1
-                body += link.expand('<a href="\\2">\\1</a>')
-                continue
+                if (not link):
+                    link = re.match('\[([^|]+)\]\(([^\)]+)\)', line[c:])
+
+                if (link):
+                    c += link.end() - 1
+                    if (link.group(1) == '#'):
+                        # (Foot|side)note
+                        note_counter += 1
+                        if note_mode == FOOTNOTES:
+                            note_list.append((note_counter, link.group(2)))
+                            body += '<a class="footnote" href="#footnote-{0}">' \
+                                    '<span class="note-link">[<span class="fa fa-hand-o-down"></span> {0}]' \
+                                    '</span></a>'.format(note_counter)
+                        elif note_mode == MARGINALNOTES:
+                            body += '<a class="marginal" href="#"><span class="note-link">' \
+                                    '[<span class="fa fa-hand-o-right"></span> {0}]</span>' \
+                                    '<div class="note">Margin note {0}:<br/>{1}' \
+                                    '</div></a>'.format(note_counter,link.group(2))
+                        elif note_mode == POPUPNOTES:
+                            body += '<a class="popup" href="#"><span class="note-link">' \
+                                    '[<span class="fa fa-question"></span> {0}]</span>' \
+                                    '<div class="note-outer"><div class="note-inner">{1}</div></div>' \
+                                    '</a>'.format(note_counter,link.group(2))
+                    else:
+                        body += link.expand('<a href="\\2">\\1</a>')
+                    continue
             if (line[c] == '\\'):
                 if (lenline > c+1) and line[c+1] == '\\':
                     body += "\\"
@@ -411,9 +468,13 @@ if in_section:
 styles = {'#':'list-decimal', '*': 'list-star', 'i': 'lower-roman', 'a': 'lower-latin', '-': 'list-dash', '': 'list-basic'}
 sugar = {')': '-par', '(': '-bothpar', '/': '-slash',  '.': '-period', '': '-bare' }
 
-print('''<html><head><meta charset="UTF-8"/><style>
+print('''<html><head><meta charset="UTF-8"/>
+    <style>
 '''+HtmlFormatter().get_style_defs('.code')+'''
-</style>''')
+    </style>''')
+if (note_counter > 0):
+    print('''
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"/>''')
 
 if (default_css):
     print ('''
