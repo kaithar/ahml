@@ -109,7 +109,9 @@ Additionally:
   - Superscript available as `x^2`, `x^(2+2)` per Discount markdown extras, and `x\sup{"2"}` for clarity and compatibility.
   - Subscript only available via `x\sub{"n"}` form, to avoid conflicted interpretation of underscore.
 
---test--//hmm//
+Tests:
+  - --test--//hmm//
+  - x^2 test of straight sup
 
 Lists
 =====

@@ -346,6 +346,12 @@ while True:
                     else:
                         body += link.expand('<a href="\\2">\\1</a>')
                     continue
+            if (c+1 < lenline) and (line[c] == '^'):
+                w = line[c+1:].find(' ')
+                if (w > 0):
+                    body += "<sup>"+line[c+1:c+w+1]+"</sup>"
+                    c += w
+                    continue
             if (line[c] == '\\'):
                 if (lenline > c+1) and line[c+1] == '\\':
                     body += "\\"
