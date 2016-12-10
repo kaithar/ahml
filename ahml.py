@@ -8,6 +8,8 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
+import argparse
+
 mdsection = re.compile("^=+$")
 mdsubsec = re.compile("^-+$")
 
@@ -38,17 +40,16 @@ listcont = re.compile('^([ ]+)[^ ]')
 styles = {'#':'list-decimal', '*': 'list-star', 'i': 'list-roman', 'a': 'list-latin', '-': 'list-dash', '': 'list-basic'}
 sugar = {')': '-par', '(': '-bothpar', '/': '-slash',  '.': '-period', '': '-bare' }
 
-input = sys.stdin.readlines()
-lenin = len(input)
-
-for lineno in range(0,len(input)):
-    input[lineno] = input[lineno].replace("\n", "")
 
 body = ""
 listdepth = []
 listcounter = []
 extracss = []
 default_css = True
+code_css = False
+title = None
+
+dependency_list = []
 
 # Modes:
 FOOTNOTES = 0
@@ -57,6 +58,27 @@ POPUPNOTES = 2
 note_mode = FOOTNOTES
 note_list = []
 note_counter = 0
+
+# Handle args...
+parser = argparse.ArgumentParser(description="Convert AHML to HTML")
+parser.add_argument('--output_dependencies', action="store_true",
+                    help="Output the files required to build this file")
+parser.add_argument('--debug_list', action="store_true",
+                    help="Debug: list info")
+args = parser.parse_args()
+
+# Options
+ONLY_OUTPUT_DEPENDENCIES=args.output_dependencies
+DEBUG_LIST=args.debug_list
+
+# Read in
+input = sys.stdin.readlines()
+lenin = len(input)
+
+for lineno in range(0,len(input)):
+    input[lineno] = input[lineno].replace("\n", "")
+
+# Process
 
 lineno = -1
 while True:
@@ -84,6 +106,7 @@ while True:
             # This will be the control instructions
             if (line.startswith('## include ')):
                 fn = line[11:]
+                dependency_list.append(fn)
                 ninpm = open(fn).readlines()
                 lenin += len(ninpm)
 
@@ -93,6 +116,7 @@ while True:
             # ## inject
             if (line.startswith('## inject ')):
                 fn = line[10:]
+                dependency_list.append(fn)
                 body += open(fn).read()
                 continue
             # ## css
@@ -124,6 +148,15 @@ while True:
                         body += '<li><a href="footnotelink-{0}" id="footnote-{0}">Note {0}</a> - {1}</li>'.format(note[0], note[1])
                     body += '</ul>'
                 continue
+            # ## set
+            if (line.startswith('## set ')):
+                fn = line[7:]
+                variable,value = fn.split('=', 1)
+                variable = variable.strip()
+                value = value.strip()
+                if (variable == "title"):
+                    title = value
+                continue
             pass
         else:
             # This will be comments
@@ -139,6 +172,7 @@ while True:
                 if (len(line) > 3):
                     lexer = get_lexer_by_name(line[3:], stripall=True)
                     formatter = HtmlFormatter(linenos='table', cssclass="code")
+                    code_css = True
                     body += '<div class="mono">'+highlight('\n'.join(input[lineno+1:search]), lexer, formatter)+'</div>'
                 else:
                     body += '<div class="mono code">%s</div>'%(
@@ -173,7 +207,8 @@ while True:
         if (lf):
             lfg = lf.groups()
             lfli, lfcont = len(lfg[1]), len(lfg[0])
-            sys.stderr.write("%s\n"%repr(lfg))
+            if (DEBUG_LIST):
+                sys.stderr.write("%s\n"%repr(lfg))
 
             if (len(listdepth) == 0) or (lfli > listdepth[0]):
                 listdepth.insert(0, lfli)
@@ -377,6 +412,7 @@ while True:
                             body += "</div>"
                         body += sectiontags[tag].format(tag,cont)
                         in_section = True
+                        skip_newline = True
                     elif (tag == "begin"):
                         if (cont == "block"):
                             if (in_blocks or in_latex_block):
@@ -407,6 +443,7 @@ while True:
                                         if parts[2]:
                                             lexer = get_lexer_by_name(parts[2], stripall=True)
                                             formatter = HtmlFormatter(linenos='table', cssclass="code")
+                                            code_css = True
                                             body += '<div class="mono">'+highlight(codechunk, lexer, formatter)+'</div>'
                                         else:
                                             body += '<div class="mono code" language="%s">'%(parts[2] or "")
@@ -474,17 +511,20 @@ if in_section:
 styles = {'#':'list-decimal', '*': 'list-star', 'i': 'lower-roman', 'a': 'lower-latin', '-': 'list-dash', '': 'list-basic'}
 sugar = {')': '-par', '(': '-bothpar', '/': '-slash',  '.': '-period', '': '-bare' }
 
-print('''<html><head><meta charset="UTF-8"/>
-    <style>
-'''+HtmlFormatter().get_style_defs('.code')+'''
-    </style>''')
-if (note_counter > 0):
-    print('''
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"/>''')
+if (ONLY_OUTPUT_DEPENDENCIES):
+    print(" ".join(dependency_list))
 
-if (default_css):
-    print ('''
-<style>
+else:
+
+    print('<html><head><meta charset="UTF-8"/>')
+    if (code_css):
+        print("<style>\n{}</style>".format(HtmlFormatter().get_style_defs('.code')))
+
+    if (note_counter > 0):
+        print('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"/>')
+
+    if (default_css):
+        print ('''<style>
 body {
     font: 16px/24px sans-serif;
     margin: 1em;
@@ -601,12 +641,14 @@ span.stricken { text-decoration: line-through; }
 
 </style>''')
 
-for x in extracss:
-    print('<link rel="stylesheet" href="'+x+'" type="text/css"/>')
+    for x in extracss:
+        print('<link rel="stylesheet" href="'+x+'" type="text/css"/>')
 
-print('''</head><body>
-      ''')
-print(body)
-print('</body></html>')
+    if title:
+        print("<title>"+title+"</title>")
+
+    print('</head><body>')
+    print(body)
+    print('</body></html>')
 
 
