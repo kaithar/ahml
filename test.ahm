@@ -175,9 +175,12 @@ Special
 
   - Lines beginning with `#!` will be ignored completely.  This is to facilitate a shebang.
   - Lines beginning with `## ` (hash hash space) are control lines.
-    - `## set fewer_lines=on;` to use Markdown/LaTeX style line break logic.
-    - `## set markdown_emphasis=on;` to follow Markdown's bold/italic rules.  This is a compatibility option primarily.
-    - `## set latex_double_backslash=on;` makes `\\` a line break rather than an escaped `\`.  For compatibility reasons.
+    - `## set fewer_lines=on` to use Markdown/LaTeX style line break logic.
+    - `## set markdown_emphasis=on` to follow Markdown's bold/italic rules.  This is a compatibility option primarily.
+    - `## set latex_double_backslash=on` makes `\\` a line break rather than an escaped `\`.  For compatibility reasons.
+    - `## set title=text goes here` the text following the = is used as the html title.
+      `## css path/to/file.css` add a css link tag to the header pointing at the given path.
+      `## suppress default_css` don't include the style tag containing the default stylesheet.
     - `## include path/to/file.ahm` include and process the file as if it were actually in this file.
     - `## inject path/to/file.ahm` output the file without any processing.
   - Lines beginning with `#` that aren't `#!` or `##` will be treated as comments.

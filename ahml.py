@@ -3,6 +3,7 @@
 from __future__ import print_function
 import sys
 import re
+import json
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
@@ -413,6 +414,55 @@ while True:
                         body += sectiontags[tag].format(tag,cont)
                         in_section = True
                         skip_newline = True
+                    elif (tag == "ann_anime_details"):
+                        if not ONLY_OUTPUT_DEPENDENCIES:
+                            show_id = parts[2]
+                            options = json.loads("{"+cont+"}")
+                            gidfilter = [str(x) for x in options.get('filter',[])]
+                            import requests
+                            r = requests.get('https://cdn.animenewsnetwork.com/encyclopedia/api.xml?anime={}'.format(show_id))
+                            if (r.status_code != 200):
+                                body += "Fetch failed: {}".format(r.text)
+                            else:
+                                from xml.dom.minidom import parseString
+                                with parseString(r.text) as anime:
+                                    info = anime.getElementsByTagName('info')
+                                    infofmt = '<div class="anime_detail"><div class="structuralheader paragraphheader">{0}</div><div class="structuralbody paragraphbody">{1}</div></div>'
+                                    infotagorder = ['Main title']
+                                    infotags = {
+                                        "picture": "", "titles": [], "genres": [], "themes": [],
+                                        "summary": "", "length": 0, "episodes": 0, "vintage": ""}
+                                    for t in info:
+                                        if t.getAttribute('gid') in gidfilter:
+                                            continue
+                                        ttype = t.getAttribute('type')
+                                        if ttype == "Picture":
+                                            infotags['picture'] = t.getAttribute('src')
+                                        elif ttype in ["Main title", "Alternative title"]:
+                                            if t.getAttribute('lang') in ['EN', 'JA']:
+                                                infotags['titles'].append(t.firstChild.nodeValue)
+                                        elif ttype == "Genres":
+                                            infotags['genres'].append(t.firstChild.nodeValue)
+                                        elif ttype == "Themes":
+                                            infotags['themes'].append(t.firstChild.nodeValue)
+                                        elif ttype == "Plot Summary":
+                                            infotags['summary'] = t.firstChild.nodeValue
+                                        elif ttype == "Running time":
+                                            infotags['length'] = t.firstChild.nodeValue
+                                        elif ttype == "Number of episodes":
+                                            infotags['episodes'] = t.firstChild.nodeValue
+                                        elif ttype == "Vintage":
+                                            infotags['vintage'] = t.firstChild.nodeValue
+                                    if infotags["picture"]:
+                                        body += '<img class="anime_cover" src="{}"/>'.format(infotags["picture"])
+                                    body += infofmt.format("Name", "<br/>".join(infotags['titles']))
+                                    body += infofmt.format("Genres", " / ".join(infotags['genres']))
+                                    body += infofmt.format("Themes", " / ".join(infotags['themes']))
+                                    body += infofmt.format("Episodes", "{} episodes (Each approximately {} minutes long)".format(infotags['episodes'], infotags['length']))
+                                    body += infofmt.format("Vintage", infotags['vintage'])
+                                    body += infofmt.format("Summary", infotags['summary'])
+                                    body += infofmt.format("Source", 
+                                       'Information retrieved from <a href="https://www.animenewsnetwork.com/encyclopedia/anime.php?id={}">Anime News Network</a>'.format(show_id))
                     elif (tag == "begin"):
                         if (cont == "block"):
                             if (in_blocks or in_latex_block):
