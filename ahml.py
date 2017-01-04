@@ -49,6 +49,7 @@ extracss = []
 default_css = True
 code_css = False
 title = None
+head_tags = []
 
 dependency_list = []
 
@@ -157,6 +158,11 @@ while True:
                 value = value.strip()
                 if (variable == "title"):
                     title = value
+                continue
+            # ## head <script src="blah"/>
+            if (line.startswith('## head ')):
+                fn = line[8:]
+                head_tags.append(fn.strip())
                 continue
             pass
         else:
@@ -696,6 +702,9 @@ span.stricken { text-decoration: line-through; }
 
     if title:
         print("<title>"+title+"</title>")
+
+    for tag in head_tags:
+        print(tag)
 
     print('</head><body>')
     print(body)
