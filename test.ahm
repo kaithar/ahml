@@ -1,7 +1,6 @@
 ## css main.css
 ## inject header.ahm
-Another Horrible Markup Language
-================================
+\section("Another Horrible Markup Language")
 Inspired by (and horribly bastardising): Markdown (vanilla, discount extras and Github Flavoured), ReST, LaTeX
 
 Principle:
@@ -13,11 +12,10 @@ Principle:
 The irony of writing this up on gist is not lost on me.
 I've generally only specified the opening tag of a LaTeX style `\begin{}` block... a closing tag is implied but not given. 
 
-Headers
-=======
+\section("Headers")
 
-Equals or hyphen strings like Markdown are mapped to `\section` `\subsection`.
-LaTeX is generally prefered.
+Equals or hyphen strings like Markdown are deprecated but currently mapped to `\section` `\subsection`.
+LaTeX is generally prefered and will be required in future due to cleaner parsing.
   - `\part` and `\chapter` may be ignored, may be used for multipage docs, not decided.
   - `\section` `\subsection` `\subsubsection` `\paragraph` `\subparagraph` are supported directly.
   - Example: `\section{"This is a section in the page, yo!"}`
@@ -31,8 +29,7 @@ LaTeX is generally prefered.
 \subparagraph{"subpara2"}
 
 
-Line breaks
-===========
+\section("Line breaks")
 
 New lines are converted as is.  Thus line breaks render as you expect them to.
 This is not how MD or LaTeX do things.  Continuation lines can be done with a trailing `\`.
@@ -49,6 +46,8 @@ becomes:
 like so: foo \
 bar
 
+To turn this behaviour off see `## set auto_newline` below.
+
 To force a line break, use `\newline` as in LaTeX or `\n` for short.  The short form `\\` is not supported as that's treated as an escaped `\`.
 
 Example:
@@ -56,8 +55,7 @@ Line 1 \newline Line 2 \n Line 3
 
 Escaped backslash: \\
 
-Blockquotes
-===========
+\section("Blockquotes")
 
 Both `>` indenting, per Markdown, and `\begin{block}` LaTeX forms are supported for normal indented blocks.
 GFM fenced monospace blocks are supported using the triple backtick form, as is `\begin{code}` form.
@@ -88,8 +86,7 @@ test
 ```
 \end{verbatim} more text.  End test.
 
-Style
-=====
+\section("Style")
 
 Slight deviation from Markdown, but intended to be configurable.  By default the following mappings work:
   - **bold text**
@@ -113,8 +110,7 @@ Tests:
   - --test--//hmm//
   - x^2 test of straight sup
 
-Lists
-=====
+\section("Lists")
 
 List characters supported are `-`, `+` and `*`.  Any can be used.
   - This is a list.
@@ -151,8 +147,7 @@ List characters supported are `-`, `+` and `*`.  Any can be used.
     -a) test
     -a test
 
-Links
-=====
+\section("Links")
 
   - Per GFM, bare urls are auto linked.
   - Normal Markdown style links are supported: `[Google](https://google.com)`
@@ -164,18 +159,16 @@ Links
     Example: `[#](https://some.random.com/cited/source - A short description of the source)`
     The link will be specified in the format `[1]` in the final result.
     An optional description can be provided by following the url with ` - ` and the description.  The spaces are required.
-    
-Images & tables
-===============
+
+\section("Images & tables")
 
   - These will be fairly close to GFM and LaTeX provides.  Still thinking on it.
   
-Special
-=======
+\section("Special")
 
   - Lines beginning with `#!` will be ignored completely.  This is to facilitate a shebang.
   - Lines beginning with `## ` (hash hash space) are control lines.
-    - `## set fewer_lines=on` to use Markdown/LaTeX style line break logic.
+    - `## set auto_newline=off` to use Markdown/LaTeX style line break logic.
     - `## set markdown_emphasis=on` to follow Markdown's bold/italic rules.  This is a compatibility option primarily.
     - `## set latex_double_backslash=on` makes `\\` a line break rather than an escaped `\`.  For compatibility reasons.
     - `## set title=text goes here` the text following the = is used as the html title.

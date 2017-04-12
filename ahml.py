@@ -65,12 +65,15 @@ note_counter = 0
 parser = argparse.ArgumentParser(description="Convert AHML to HTML")
 parser.add_argument('--output_dependencies', action="store_true",
                     help="Output the files required to build this file")
+parser.add_argument('--output_bare', action="store_true",
+                    help="Output only the parser result.")
 parser.add_argument('--debug_list', action="store_true",
                     help="Debug: list info")
 args = parser.parse_args()
 
 # Options
 ONLY_OUTPUT_DEPENDENCIES=args.output_dependencies
+OUTPUT_BARE = args.output_bare
 DEBUG_LIST=args.debug_list
 
 # Read in
@@ -572,14 +575,15 @@ if (ONLY_OUTPUT_DEPENDENCIES):
 
 else:
 
-    print('<html><head><meta charset="UTF-8"/>')
+    if (not OUTPUT_BARE):
+        print('<html><head><meta charset="UTF-8"/>')
     if (code_css):
         print("<style>\n{}</style>".format(HtmlFormatter().get_style_defs('.code')))
 
     if (note_counter > 0):
         print('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"/>')
 
-    if (default_css):
+    if (default_css and not OUTPUT_BARE):
         print ('''<style>
 body {
     font: 16px/24px sans-serif;
@@ -706,8 +710,8 @@ span.stricken { text-decoration: line-through; }
     for tag in head_tags:
         print(tag)
 
-    print('</head><body>')
-    print(body)
-    print('</body></html>')
-
+    if (not OUTPUT_BARE):
+        print('</head><body>\n{}\n</body></html>'.format(body))
+    else:
+        print(body)
 
