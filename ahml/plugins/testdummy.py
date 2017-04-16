@@ -5,6 +5,8 @@ class testdummy(object):
 		pass
 
 	def render(self, state, args):
+		if args:
+			return repr(args)
 		return "Foo"
 
 registry.add("testdummy", testdummy)
