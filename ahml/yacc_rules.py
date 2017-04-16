@@ -41,6 +41,10 @@ def p_document_directive(p):
 	'content : DIRECTIVE'
 	p[0] = lang_objects.ahml_DIRECTIVE(p[1])
 
+def p_document_json(p):
+	'content : JSON'
+	p[0] = lang_objects.ahml_JSON(p[1])
+
 def p_document_comment(p):
 	'content : COMMENT'
 	p[0] = lang_objects.ahml_COMMENT(p[1])

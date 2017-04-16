@@ -1,5 +1,6 @@
 import re
 from ply.lex import TOKEN
+from . import registry
 
 states = []
 tokens = []
@@ -70,6 +71,43 @@ def t_ESCAPED_HASH(t):
     t.value = '#'
     return t
 
+# Some json matching...
+states.append(('json', 'exclusive'))
+tokens.append('JSON')
+def t_json_OPEN(t):
+    '{'
+    t.lexer.block_depth += 1
+    t.lexer.json_content += t.value
+
+def t_json_CLOSE(t):
+    '}'
+    t.lexer.block_depth -= 1
+    t.lexer.json_content += t.value
+    if t.lexer.block_depth == 0:
+        t.lexer.pop_state()
+        t.type = 'JSON'
+        t.value = t.lexer.json_content
+        return t
+
+def t_json_STUFF(t):
+    '[^{}]+'
+    if t.lexer.block_depth == 0:
+        t.lexer.pop_state()
+        t.lexer.skip(-1)
+    t.lexer.json_content += t.value
+
+def t_json_error(t):
+    print('Probably impossible "{}"'.format(t.value))
+    t.lexer.pop_state()
+    t.lexer.skip(-1)
+    return None
+
+def t_json_eof(t):
+    print('Probably impossible eof')
+    t.lexer.pop_state()
+    t.lexer.skip(-1)
+    return None
+
 states.append(('cmd', 'exclusive'))
 def t_BEGIN_COMMAND(t):
     r'(?<!\\)\\(?![\\ \t\n\r])'
@@ -84,11 +122,17 @@ def t_cmd_FORCED_NEWLINE(t):
 
 def t_cmd_COMMAND(t):
     r'(?<=\\)[^ \t\n\r\[\{]+(?=[ \t\n\r\[\{])'
-    if (t.value.lower() in ['section', 'subsection', 'subsubsection', 'paragraph', 'subparagraph', 'begin', 'end', 'sub']):
-        t.lexer.command.append(t.value)
+    l = t.value.lower()
+    if (l in ['section', 'subsection', 'subsubsection', 'paragraph', 'subparagraph', 'begin', 'end', 'sub']):
+        t.lexer.command.append(l)
+    elif (l == 'json'):
+        t.lexer.json_content = ''
+        t.lexer.block_depth = 0
+        t.lexer.pop_state()
+        t.lexer.push_state('json')
     else:
-        print('Unknown command: {}'.format(t.value))
-        raise Exception()
+        t.lexer.command.append("plugin")
+        t.lexer.command.append(l)
 
 def t_cmd_error(t):
     print('Unknown command "{}"'.format(t.value))

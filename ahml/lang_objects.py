@@ -2,6 +2,8 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 import re
+import importlib
+from . import registry
 
 FOOTNOTES = 0
 MARGINALNOTES = 1
@@ -343,15 +345,20 @@ class ahml_DIRECTIVE(object):
 	content = ''
 	def __init__(self, content):
 		self.content = content
+		f = self.content[2:].strip().split(' ', 1)
+		self.directive, self.args = f[0],('' if len(f) == 1 else f[1])
+		if self.directive == 'load':
+			# ## load ahml.plugin.testdummy
+			importlib.import_module(self.args.strip())
 	def __repr__(self):
 		return '<ahml_DIRECTIVE "{}">'.format(repr(self.content))
 	def dump(self):
 		return ('ahml_DIRECTIVE', self.content)
 	def render(self, state):
-		f = self.content[2:].strip().split(' ', 1)
-		directive, args = f[0],('' if len(f) == 1 else f[1])
+		directive, args = self.directive, self.args
 		if directive == 'include':
 			from .compile_ahml import parser
+			state['dependency_list'].append(args)
 			candidate = open(args, 'r').read()
 			if candidate:
 				result = parser.parse(candidate)
@@ -407,6 +414,10 @@ class ahml_DIRECTIVE(object):
 		elif directive == 'head':
 			# ## head <script src="blah"/>
 			state['head_tags'].append(args.strip())
+		elif directive == 'load':
+			# ## load ahml.plugin.testdummy
+			# Handled in the init phase
+			pass
 		else:
 			return [repr(self.dump())]
 		return None
@@ -420,6 +431,20 @@ class ahml_COMMENT(object):
 	def dump(self):
 		return ('ahml_COMMENT', self.content)
 	def render(self, state):
+		return None
+
+class ahml_JSON(object):
+	content = ''
+	def __init__(self, content):
+		import json
+		from collections import OrderedDict
+		self.content = OrderedDict(json.loads(content))
+	def __repr__(self):
+		return '<ahml_JSON "{}">'.format(repr(self.content))
+	def dump(self):
+		return ('ahml_JSON', self.content)
+	def render(self, state):
+		state['variables'].update(self.content)
 		return None
 
 class ahml_COMMAND(object):
@@ -437,6 +462,8 @@ class ahml_COMMAND(object):
 		self.content = content
 		if (self.content[0] in self.sectiontags):
 			self.eat_nl = True
+		elif self.content[0] == 'plugin':
+			registry.produce(self.content[1], self)
 	def __repr__(self):
 		return '<ahml_COMMAND "{}">'.format(repr(self.content))
 	def dump(self):
@@ -444,7 +471,12 @@ class ahml_COMMAND(object):
 	def get_unstyled(self):
 		return ''
 	def render(self, state):
-		if self.content[0] in self.sectiontags:
+		if self.content[0] == 'plugin':
+			if len(self.content) > 2:
+				return registry.call(self, state, self.content[2:])
+			else:
+				return registry.call(self, state, None)
+		elif self.content[0] in self.sectiontags:
 			t = ''
 			for x in self.content:
 				if len(x) > 1 and x[0] == 'ARGUMENT':
