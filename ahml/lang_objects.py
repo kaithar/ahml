@@ -34,6 +34,14 @@ class ahml_document(object):
 		else:
 			self.lines.append(line)
 		return self
+	def __eq__(self, right):
+		if (right[0] != 'ahml_document') or (len(right[1]) != len(self.lines)):
+			return False
+		for i in range(0,len(right[1])):
+			if (right[1][i] != self.lines[i]):
+				print("Mismatch: {} != {}".format(right[1][i], self.lines[i]))
+				return False
+		return True
 	def __repr__(self):
 		return '("ahml_document", {})'.format(repr(self.lines))
 	def dump(self):
@@ -85,6 +93,8 @@ class ahml_indent_block(object):
 	def __init__(self, beginning, first_line):
 		self.block_props = beginning
 		self.content = [first_line]
+	def __eq__(self, right):
+		return (right[0] == 'ahml_indent_block') and right[1] == self.content
 	def append(self, content):
 		last = self.content.pop()
 		if isinstance(last, ahml_TEXT):
@@ -135,6 +145,8 @@ class ahml_markdown_indent_block(object):
 		else:
 			self.content.append(content)
 		return self
+	def __eq__(self, right):
+		return (right[0] == 'ahml_markdown_indent_block') and (right[1] == self.lines)
 	def __repr__(self):
 		return '<ahml_markdown_indent_block {}>'.format(repr(self.content))
 	def __str__(self):
@@ -174,6 +186,18 @@ class ahml_text(object):
 		if (isinstance(content, ahml_TEXT) and
 			content.content.endswith('</div>')):
 			self.eat_nl = True
+	def __eq__(self, right):
+		if (right[0] != 'ahml_text'):
+			print("Mismatch: {} != ahml_text".format(right[0]))
+			return False
+		if (len(right[1]) != len(self.content)):
+			print("Mismatch: {} != {}".format(len(right[1]), len(self.content)))
+			return False
+		for i in range(0,len(right[1])):
+			if (right[1][i] != self.content[i]):
+				print("Mismatch: {} != {}".format(right[1][i], self.content[i]))
+				assert False
+		return True
 	@staticmethod
 	def can_append(content):
 		if (isinstance(content, ahml_TEXT) or
@@ -234,6 +258,8 @@ class ahml_URL(object):
 	text = ''
 	def __init__(self, groups):
 		self.text, self.uri = groups
+	def __eq__(self, right):
+		return (right[0] == 'ahml_URL') and (right[1][0] == self.uri) and (right[1][1] == self.text)
 	def get_unstyled(self):
 		return self.text
 	def __str__(self):
@@ -284,6 +310,8 @@ class ahml_STYLED_TEXT(object):
 	}
 	def __init__(self, groups):
 		self.groups = groups
+	def __eq__(self, right):
+		return (right[0] == 'ahml_STYLED_TEXT') and (right[1] == self.groups)
 	def __str__(self):
 		return ('ahml_STYLED_TEXT', self.groups)
 	def __repr__(self):
@@ -313,6 +341,8 @@ class ahml_TEXT(object):
 		elif (content.startswith(' \\\\')):
 			content = ' '+content[2:]
 		self.content = content
+	def __eq__(self, right):
+		return (right[0] == 'ahml_TEXT') and (right[1] == self.content)
 	@staticmethod
 	def can_append(content):
 		if (isinstance(content, ahml_TEXT) or
@@ -350,6 +380,8 @@ class ahml_DIRECTIVE(object):
 		if self.directive == 'load':
 			# ## load ahml.plugin.testdummy
 			importlib.import_module(self.args.strip())
+	def __eq__(self, right):
+		return (right[0] == 'ahml_DIRECTIVE') and (right[1] == self.content)
 	def __repr__(self):
 		return '<ahml_DIRECTIVE "{}">'.format(repr(self.content))
 	def dump(self):
@@ -417,7 +449,7 @@ class ahml_DIRECTIVE(object):
 		elif directive == 'load':
 			# ## load ahml.plugin.testdummy
 			# Handled in the init phase
-			pass
+			return None
 		else:
 			return [repr(self.dump())]
 		return None
@@ -426,6 +458,8 @@ class ahml_COMMENT(object):
 	content = ''
 	def __init__(self, content):
 		self.content = content
+	def __eq__(self, right):
+		return (right[0] == 'ahml_COMMENT') and (right[1] == self.content)
 	def __repr__(self):
 		return '<ahml_COMMENT "{}">'.format(repr(self.content))
 	def dump(self):
@@ -437,8 +471,9 @@ class ahml_JSON(object):
 	content = ''
 	def __init__(self, content):
 		import json
-		from collections import OrderedDict
-		self.content = OrderedDict(json.loads(content))
+		self.content = json.loads(content)
+	def __eq__(self, right):
+		return (right[0] == 'ahml_JSON') and (right[1] == self.content)
 	def __repr__(self):
 		return '<ahml_JSON "{}">'.format(repr(self.content))
 	def dump(self):
@@ -464,6 +499,8 @@ class ahml_COMMAND(object):
 			self.eat_nl = True
 		elif self.content[0] == 'plugin':
 			registry.produce(self.content[1], self)
+	def __eq__(self, right):
+		return (right[0] == 'ahml_COMMAND') and (right[1] == self.content) and ((len(right) == 2) or (right[2] == self.eat_nl))
 	def __repr__(self):
 		return '<ahml_COMMAND "{}">'.format(repr(self.content))
 	def dump(self):
@@ -495,6 +532,8 @@ class ahml_CODE_FRAGMENT(object):
 	content = ''
 	def __init__(self, content):
 		self.content = content
+	def __eq__(self, right):
+		return (right[0] == 'ahml_CODE_FRAGMENT') and (right[1] == self.content)
 	def append(self, content):
 		if (isinstance(content, ahml_CODE_FRAGMENT)):
 			self.content += content.content
@@ -532,6 +571,9 @@ class ahml_COMPLETE_CODE(object):
 		self.opts = opts
 		self.mode = mode
 		self.content = content
+	def __eq__(self, right):
+		return ((right[0] == 'ahml_COMPLETE_CODE') and
+			(right[1] == self.opts) and (right[2] == self.mode) and (right[3] == self.content))
 	def __repr__(self):
 		return '<ahml_COMPLETE_CODE {} "{}">'.format(
 			self.opts, repr(self.content))
@@ -570,6 +612,8 @@ class ahml_INLINE_CODE(object):
 	content = ''
 	def __init__(self, content):
 		self.content = content[1:-1]
+	def __eq__(self, right):
+		return (right[0] == 'ahml_INLINE_CODE') and (right[1] == self.content)
 	def get_unstyled(self):
 		return self.content
 	def __repr__(self):
@@ -583,6 +627,8 @@ class ahml_NEWLINE(object):
 	force = False
 	def __init__(self, force=False):
 		self.force = force
+	def __eq__(self, right):
+		return right[0] == 'ahml_NEWLINE'
 	def get_unstyled(self):
 		return '\n'
 	def __repr__(self):
@@ -607,10 +653,12 @@ class ahml_list_object(object):
 	def __init__(self, list_opts, content):
 		self.list_opts = list_opts
 		self.content = content
+	def __eq__(self, right):
+		return (right[0] == 'ahml_list_object') and (right[1] == self.content)
 	def __str__(self):
 		pass
 	def __repr__(self):
-		return 'list_object({})'.format(repr(self.content))
+		return '<ahml_list_object {}>'.format(repr(self.content))
 	def dump(self):
 		dump = []
 		for x in self.content:
@@ -638,6 +686,8 @@ class ahml_list_item(ahml_document):
 		return '<LI "{}">'.format(str(self.lines))
 	def __repr__(self):
 		return '<list_item({}>'.format(repr(self.lines))
+	def __eq__(self, right):
+		return (right[0] == 'ahml_list_item') and (right[1] == self.lines)
 	def append(self, item):
 		for x in item.lines:
 	 		super().append(x)

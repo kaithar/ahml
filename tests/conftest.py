@@ -27,7 +27,10 @@ def yacc_test_helper(input, expected_result, expected_render):
 	parser = get_yaccer()
 	run = parser.parse(input)
 	print(str(run))
-	assert str(run) == expected_result
+	if isinstance(expected_result, str):
+		assert str(run) == expected_result
+	else:
+		assert run == expected_result
 	state = {}
 	result = run.render(state)
 	print(str(result))

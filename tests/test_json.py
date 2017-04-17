@@ -1,10 +1,10 @@
 
 def test_json(ply_test_helper):
 	state = ply_test_helper(
-		'''\json{"a": {"b": "c"}}''',
+		'''\json{"a": {"b": "c", "d": 5}}''',
 		[
-			('JSON','{"a": {"b": "c"}}')
+			'JSON'
 		],
-		r'''("ahml_document", [<ahml_JSON "OrderedDict([('a', {'b': 'c'})])">])''',
+		('ahml_document', [('ahml_JSON', {"a": {"b": "c", "d": 5}})]),
 		'')
-	assert state['variables']['a'] == {"b": "c"}
+	assert state['variables']['a'] == {"b": "c", "d": 5}
